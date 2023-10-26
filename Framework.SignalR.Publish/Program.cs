@@ -20,16 +20,9 @@ namespace Framework.SignalR.Publish
 
                 var hubConnection = new HubConnection(url);
                 IHubProxy hubProxy = hubConnection.CreateHubProxy("CustomHub");
-                //hubProxy.On<string>("Publish",
-                //   data => Console.WriteLine("Notification received : {0}", data));
 
                 await hubConnection.Start();
 
-                //var connectionId = hubConnection.ConnectionId;
-
-                //await hubProxy.Invoke<string>("JoinGroup", connectionId, "Group1");
-
-                //IHubContext ctx = GlobalHost.ConnectionManager.GetHubContext<BaseHub>();
                 while (true)
                 {
                     Console.WriteLine("Enter your message:");

@@ -1,17 +1,19 @@
-﻿using Framework.SignalR.Subscriber;
+﻿using Framework.SignalR.Core.Subscriber;
 using System;
 using System.Threading.Tasks;
 
-namespace Framework.SignalR.Receive
+namespace Framework.SignalR.Core.Receive
 {
-    public class Program
+    internal class Program
     {
         static async Task Main(string[] args)
         {
-            string url = "http://localhost:8080";
+
+            string url = "http://localhost:5000/messageHub";
+
             Console.WriteLine("Client running");
             BaseSubscriber sub = new BaseSubscriber(url);
-            await sub.Connect("CustomHub", "Group1");
+            await sub.Connect("Group1");
             sub.Subscribe<string>("Publish");
             sub.publishedEvent += Receive;
             Console.ReadLine();

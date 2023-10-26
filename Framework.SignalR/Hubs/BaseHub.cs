@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNet.SignalR;
 using System.Threading.Tasks;
 
-namespace Framework.SignalR.SignalR.Hubs
+namespace Framework.SignalR.Hubs
 {
     public class BaseHub : Hub
     {

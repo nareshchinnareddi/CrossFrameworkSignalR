@@ -6,7 +6,6 @@ namespace Core.SignalR.Subscriber
 {
     public class BaseSubscriber
     {
-        protected readonly ILogger _logger;
         protected HubConnection? _hubConnection;
         protected string _groupName = string.Empty;
         protected bool _disconnecting = false;
@@ -15,9 +14,8 @@ namespace Core.SignalR.Subscriber
         public event EventHandler? connectionOpened;
         public event EventHandler? connectionClosed;
         public event EventHandler? joinGroup;
-        public BaseSubscriber(string hubUrl, ILogger<BaseSubscriber> logger)
+        public BaseSubscriber(string hubUrl)
         {
-            _logger = logger;
             _hubUrl = hubUrl;
         }
 

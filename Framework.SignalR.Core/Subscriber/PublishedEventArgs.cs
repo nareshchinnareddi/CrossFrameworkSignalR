@@ -1,4 +1,4 @@
-﻿namespace Framework.SignalR.Subscriber
+﻿namespace Framework.SignalR.Core.Subscriber
 {
     public class PublishedEventArgs
     {

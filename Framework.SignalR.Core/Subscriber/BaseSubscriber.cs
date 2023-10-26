@@ -1,18 +1,14 @@
-﻿using Microsoft.AspNet.SignalR.Client;
-using Microsoft.AspNet.SignalR.Client.Hubs;
-using Microsoft.AspNet.SignalR.Infrastructure;
+﻿using Microsoft.AspNetCore.SignalR.Client;
 using System;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace Framework.SignalR.Subscriber
+namespace Framework.SignalR.Core.Subscriber
 {
     public class BaseSubscriber
     {
         protected HubConnection _hubConnection;
-        protected IHubProxy _hubProxy;
         protected string _groupName = string.Empty;
-        protected string _hubName = string.Empty;
         protected bool _disconnecting = false;
         protected string _hubUrl;
         public event EventHandler<PublishedEventArgs> publishedEvent;
@@ -26,14 +22,13 @@ namespace Framework.SignalR.Subscriber
 
         public bool IsConnected()
         {
-            if (_hubConnection != null && _hubConnection.State == ConnectionState.Connected) return true;
+            if (_hubConnection != null && _hubConnection.State == HubConnectionState.Connected) return true;
             return false;
         }
 
-        public async Task Connect(string hubName, string groupName, bool reconnect = true)
+        public async Task Connect(string groupName, bool reconnect = true)
         {
             _groupName = groupName;
-            _hubName = hubName;
             _disconnecting = false;
             await Connect(reconnect);
         }
@@ -47,8 +42,8 @@ namespace Framework.SignalR.Subscriber
                     if (_hubConnection == null)
                     {
                         _hubConnection = await CreateHubConnection(_hubUrl);
-                        _hubProxy = _hubConnection.CreateHubProxy(_hubName);
-                        _hubConnection.Closed += async () =>
+                        _hubConnection.On<string>("JoinGroup", JoinGroup);
+                        _hubConnection.Closed += async (Exception) =>
                         {
                             OnClosed(new EventArgs());
                             if (reconnect)
@@ -58,12 +53,14 @@ namespace Framework.SignalR.Subscriber
                         };
                     }
 
-                    if (_hubConnection.State == ConnectionState.Disconnected)
+                    if (_hubConnection.State == HubConnectionState.Disconnected)
                     {
-                        await _hubConnection.Start();
+                        await _hubConnection.StartAsync();
                     }
+
                     OnOpened(new EventArgs());
-                    await _hubProxy.Invoke<string>("JoinGroup", _groupName);
+
+                    await _hubConnection.SendAsync("JoinGroup", _groupName);
                 }
             }
             catch (Exception ex)
@@ -78,8 +75,8 @@ namespace Framework.SignalR.Subscriber
             _disconnecting = true;
             if (_hubConnection != null)
             {
-                await _hubProxy.Invoke("LeaveGroup", _groupName);
-                _hubConnection.Stop();
+                await _hubConnection.SendAsync("LeaveGroup", _groupName);
+                await _hubConnection.StopAsync();
             }
         }
 
@@ -99,9 +96,9 @@ namespace Framework.SignalR.Subscriber
 
         public void Subscribe<T>(string messageType) where T : class
         {
-            if (_hubProxy != null)
+            if (_hubConnection != null)
             {
-                _hubProxy.On<T>(messageType, HandlePublishedChange);
+                _hubConnection.On<T>(messageType, HandlePublishedChange);
             }
             else
             {
@@ -116,7 +113,9 @@ namespace Framework.SignalR.Subscriber
 
         protected static Task<HubConnection> CreateHubConnection(string hubUrl)
         {
-            HubConnection hubConnection = new HubConnection(hubUrl);
+            HubConnection hubConnection = new HubConnectionBuilder()
+                    .WithUrl(hubUrl)
+                    .Build();
 
             return Task.FromResult(hubConnection);
         }
